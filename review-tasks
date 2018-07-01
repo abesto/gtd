@@ -1,0 +1,36 @@
+#!/bin/bash
+set -euo pipefail
+
+echo '== Make sure all tasks you know are recorded for each project =='
+
+project_queue_file=/tmp/review-tasks.queue
+
+if [ "${1:-x}" = reset ]; then
+    echo "Reset requested"
+    rm "${project_queue_file}"
+fi
+
+if [ ! -f "$project_queue_file" ]; then
+    echo 'Starting new review'
+    task \( +PENDING or +WAITING \) _unique project > /tmp/review-tasks.queue
+fi
+
+if [ "$(stat --format '%s' "$project_queue_file")" -eq 0 ]; then
+    echo "Review done."
+    rm "${project_queue_file}"
+    exit
+fi
+
+project="$(head -n1 "${project_queue_file}")"
+echo "Review in progress. Projects left: $(wc -l "${project_queue_file}" | cut -f1 -d' ')"
+echo "Current project: $project"
+tail +2 "${project_queue_file}" > "${project_queue_file}.new"
+mv "${project_queue_file}.new" "${project_queue_file}"
+
+echo
+task \
+    rc.report.filter='status:pending or status:waiting' \
+    rc.report.columns=id,start.age,entry.age,depends,priority,project,tags,recur,scheduled.countdown,wait.remaining,due.relative,until.remaining,description,urgency \
+    rc.report.columns=ID,Active,Age,Deps,P,Project,Tag,Recur,S,Wait,Due,Until,Description,Urg \
+    rc.verbose=label,sync \
+    next "project.is:$project"

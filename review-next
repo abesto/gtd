@@ -1,12 +1,14 @@
 #!/usr/bin/env node
 
+// This script helps ensure that all (leaf) projects have exactly one next action.
+
 const { execSync } = require('child_process')
 const { exit } = require('process')
 
 const task = (args) => execSync(`task ${args}`, {stdio: 'inherit'})
 const captureTask = (args) => execSync(`task ${args}`).toString()
 const taskLines = (args) => captureTask(args).split('\n').map(l => l.trim()).filter(l => l.length > 0)
-const printTasks = (ids) => task(`all ${ids.join(',')}`)
+const printTasks = (ids) => task(`rc.report.next.filter= next ${ids.join(',')}`)
 
 const projects = taskLines(`\\( +PENDING or +WAITING \\) _unique project`)
 projects.forEach(project => {
