@@ -1,0 +1,45 @@
+#!/usr/bin/env node
+
+const { execSync } = require('child_process')
+const { exit } = require('process')
+
+const task = (args) => execSync(`task ${args}`, {stdio: 'inherit'})
+const captureTask = (args) => execSync(`task ${args}`).toString()
+const taskLines = (args) => captureTask(args).split('\n').map(l => l.trim()).filter(l => l.length > 0)
+const printTasks = (ids) => task(`all ${ids.join(',')}`)
+
+const projects = taskLines(`\\( +PENDING or +WAITING \\) _unique project`)
+projects.forEach(project => {
+  const subprojects = projects.filter(other => other.indexOf(`${project}.`) === 0)
+  const isLeafProject = subprojects.length === 0
+  const taskIds = taskLines(`project.is:${project} _unique id`)
+  const nextTaskIds = taskLines(`project.is:${project} +next _unique id`)
+
+  if (!isLeafProject) {
+    // Non-leaf projects should have no tasks
+    if (taskIds.length > 0) {
+      console.error(`== Non-leaf project "${project}" must have no tasks ==`)
+      console.info(`Child projects: ${subprojects.join(', ')}`)
+      printTasks(taskIds)
+      exit(1)
+    }
+  } else {
+    // For leaf projects, there should be exactly one next task.
+    // That means that there isn't more than one...
+    if (nextTaskIds.length > 1) {
+      console.error(`== Leaf project "${project}" must have no more than one +next task ==`)
+      printTasks(nextTaskIds)
+      exit(2)
+    }
+    // And also that there is at least one
+    if (nextTaskIds.length === 0) {
+      console.error(`== Leaf project "${project}" must have a +next task ==`)
+      console.info('Tasks in the project follow')
+      printTasks(taskIds)
+      exit(3)
+    }
+  }
+})
+
+// If we got here, all is well; print next tasks
+task('+next')
