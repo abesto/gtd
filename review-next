@@ -5,17 +5,18 @@
 const { execSync } = require('child_process')
 const { exit } = require('process')
 
+const status = '\\( status:pending or status:waiting \\)'
 const task = (args) => execSync(`task ${args}`, {stdio: 'inherit'})
 const captureTask = (args) => execSync(`task ${args}`).toString()
 const taskLines = (args) => captureTask(args).split('\n').map(l => l.trim()).filter(l => l.length > 0)
 const printTasks = (ids) => task(`rc.report.next.filter= next ${ids.join(',')}`)
 
-const projects = taskLines(`\\( +PENDING or +WAITING \\) _unique project`)
+const projects = taskLines(`${status} _unique project`)
 projects.forEach(project => {
   const subprojects = projects.filter(other => other.indexOf(`${project}.`) === 0)
   const isLeafProject = subprojects.length === 0
-  const taskIds = taskLines(`project.is:${project} _unique id`)
-  const nextTaskIds = taskLines(`project.is:${project} +next _unique id`)
+  const taskIds = taskLines(`${status} project.is:${project} _unique id`)
+  const nextTaskIds = taskLines(`${status} project.is:${project} +next _unique id`)
 
   if (!isLeafProject) {
     // Non-leaf projects should have no tasks
