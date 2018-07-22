@@ -61,7 +61,9 @@ const setNextTask = async (prompt, taskIds, message) => {
   })
   const nextId = result.chooseNext
   const rest = taskIds.filter(id => id != nextId)
-  task(`${rest.join(',')} mod -next`)
+  if (rest.length > 0) {
+    task(`${rest.join(',')} mod -next`)
+  }
   task(`${nextId} mod +next`)
 }
 
