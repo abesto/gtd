@@ -1,13 +1,13 @@
+#!/usr/bin/env node
 const { execSync } = require('child_process')
 
 const inquirer = require('inquirer')
 const chalk = require('chalk')
 const boxen = require('boxen')
 
-
 // Wrappers around taskwarrior
 const pendingOrWaiting = '\\( status:pending or status:waiting \\)'
-const task = (args, opts={stdio: 'inherit'}) => {
+const task = (args, opts = {stdio: 'inherit'}) => {
   const cmd = `task ${args}`.replace(/\n/g, ' ').replace(/ +/g, ' ')
   console.log(chalk`{gray => ${cmd}}`)
   return execSync(cmd, opts)
@@ -56,11 +56,11 @@ const setNextTask = async (prompt, taskIds, message) => {
     message: message,
     prefix: chalk`{red !}`,
     choices: loadTasks(taskIds.join(',')).map(t => ({name: chalk`{gray ${t.id}} ${t.description}`,
-                                                     short: t.description,
-                                                     value: t.id}))
+      short: t.description,
+      value: t.id}))
   })
   const nextId = result.chooseNext
-  const rest = taskIds.filter(id => id != nextId)
+  const rest = taskIds.filter(id => id !== nextId)
   if (rest.length > 0) {
     task(`${rest.join(',')} mod -next`)
   }
@@ -91,7 +91,7 @@ const nextReviewSingleProject = (prompt, project, projects) => {
       await setNextTask(
         prompt,
         nextTaskIds,
-        chalk`Leaf project "${project}" must have no more than one +next task, has multiple. Choose one.`,
+        chalk`Leaf project "${project}" must have no more than one +next task, has multiple. Choose one.`
       )
     }
   }
@@ -114,8 +114,7 @@ const nextReview = async (prompt, stepHeader) => {
   while (!done) {
     done = true
     const projects = taskLines(`${pendingOrWaiting} _unique project`)
-    for (const [index, project] of projects.entries()) {
-      const projectHeader = chalk`{gray (${index + 1}/${projects.length})} Project: {white.bold ${project}}`
+    for (const project of projects) {
       const solveProblem = nextReviewSingleProject(prompt, project, projects)
       if (solveProblem !== null) {
         done = false
