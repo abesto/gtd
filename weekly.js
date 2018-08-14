@@ -4,6 +4,7 @@ const { execSync } = require('child_process')
 const inquirer = require('inquirer')
 const chalk = require('chalk')
 const boxen = require('boxen')
+const moment = require('moment')
 
 // Wrappers around taskwarrior
 const pendingOrWaiting = '\\( status:pending or status:waiting \\)'
@@ -50,21 +51,39 @@ const projectReview = async (prompt, stepHeader) => {
 }
 
 const setNextTask = async (prompt, taskIds, message) => {
+  const formatDate = (dateStr) => moment(dateStr, 'YYYYMMDD[T]HHmmss[Z]Z').fromNow()
+  const taskChoiceString = (task) => {
+    let str = chalk`{gray ${task.id}}`
+    str += chalk` [{yellow Urg} ${Math.round(task.urgency * 100) / 100}]`
+    if (task.tags) {
+      str += chalk`[{yellow Tag} ${task.tags.join(' ')}]`
+    }
+    if (task.due) {
+      str += chalk`[{yellow Due} ${formatDate(task.due)}]`
+    }
+    if (str[str.length - 1] !== ' ') {
+      str += ' '
+    }
+    str += task.description
+    return str
+  }
+  const tasks = loadTasks(taskIds.join(','))
+  tasks.sort((a, b) => b.urgency - a.urgency)
   const result = await prompt({
     name: 'chooseNext',
     type: 'list',
     message: message,
     prefix: chalk`{red !}`,
-    choices: loadTasks(taskIds.join(',')).map(t => ({name: chalk`{gray ${t.id}} ${t.description}`,
-      short: t.description,
-      value: t.id}))
+    choices: tasks.map(t => ({name: taskChoiceString(t),
+                              short: t.description,
+                              value: t.id}))
   })
   const nextId = result.chooseNext
   const rest = taskIds.filter(id => id !== nextId)
   if (rest.length > 0) {
-    task(`${rest.join(',')} mod -next`)
+    task(`${rest.join(',')} rc.recurrence.confirmation=no mod -next`)
   }
-  task(`${nextId} mod +next`)
+  task(`${nextId} rc.recurrence.confirmation=no mod +next`)
 }
 
 const nextReviewSingleProject = (prompt, project, projects) => {
