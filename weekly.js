@@ -74,9 +74,10 @@ const setNextTask = async (prompt, taskIds, message) => {
     type: 'list',
     message: message,
     prefix: chalk`{red !}`,
-    choices: tasks.map(t => ({name: taskChoiceString(t),
-                              short: t.description,
-                              value: t.id}))
+    choices: tasks.map(t => ({
+      name: taskChoiceString(t),
+      short: t.description,
+      value: t.id}))
   })
   const nextId = result.chooseNext
   const rest = taskIds.filter(id => id !== nextId)
