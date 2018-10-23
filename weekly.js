@@ -35,7 +35,7 @@ const projectReview = async (prompt, stepHeader) => {
     ))
     task(
       `rc.report.next.filter='status:pending or status:waiting'
-       rc.report.next.columns=id,start.age,entry.age,depends,priority,project,tags,recur,scheduled.countdown,wait.remaining,due.relative,until.remaining,description,urgency
+       rc.report.next.columns=id,start.age,entry.age,depends,priority,project,tags,recur,scheduled.countdown,wait.remaining,due,until.remaining,description,urgency
        rc.report.next.labels=ID,Active,Age,Deps,P,Project,Tag,Recur,S,Wait,Due,Until,Description,Urg
        rc.verbose=label,sync
        next "project.is:${project}"
