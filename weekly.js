@@ -33,14 +33,25 @@ const projectReview = async (prompt, stepHeader) => {
       chalk`${stepHeader}\n${projectHeader}`,
       {borderStyle: 'round'}
     ))
-    task(
-      `rc.report.next.filter='status:pending or status:waiting'
-       rc.report.next.columns=id,start.age,entry.age,depends,priority,project,tags,recur,scheduled.countdown,wait.remaining,due,until.remaining,description,urgency
-       rc.report.next.labels=ID,Active,Age,Deps,P,Project,Tag,Recur,S,Wait,Due,Until,Description,Urg
-       rc.verbose=label,sync
-       next "project.is:${project}"
-`
-    )
+    if (process.env.WEEKLYJS_OLD_COLUMNS) {
+      task(
+        `rc.report.next.filter='status:pending or status:waiting'
+         rc.report.next.columns=id,start.age,entry.age,depends,priority,project,tags,recur,scheduled.countdown,wait.remaining,due,until.remaining,description,urgency
+         rc.report.next.labels=ID,Active,Age,Deps,P,Project,Tag,Recur,S,Wait,Due,Until,Description,Urg
+         rc.verbose=label,sync
+         next "project.is:${project}"
+  `
+      )
+    } else {
+      task(
+        `rc.report.next.filter='status:pending or status:waiting'
+         rc.report.next.columns=id,start.age,entry.age,depends,priority,project,tags,recur,scheduled.countdown,wait.remaining,due.relative,until.remaining,description,urgency 
+         rc.report.next.labels=ID,Active,Age,Deps,P,Project,Tag,Recur,S,Wait,Due,Until,Description,Urg
+         rc.verbose=label,sync
+         next "project.is:${project}"
+  `
+      )
+    }
     await prompt({
       type: 'input',
       name: 'pause',
