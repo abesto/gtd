@@ -157,8 +157,12 @@ const nextReview = async (prompt, stepHeader) => {
 }
 
 const reviewSomeday = async (prompt) => {
-  task('list +someday')
-  await pause(prompt)
+  try {
+    task('list +someday')
+    await pause(prompt)
+  } catch (err) {
+    console.info(chalk`{gray Skipping, no +someday tasks}`)
+  }
 }
 
 const processIn = async (prompt) => {
